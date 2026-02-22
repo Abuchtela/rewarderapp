@@ -1,0 +1,32 @@
+{
+  "name": "paycheck-miniapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "manifest": "npx create-onchain --manifest"
+  },
+  "dependencies": {
+    "@coinbase/onchainkit": "^0.38.0",
+    "@farcaster/frame-sdk": "^0.0.30",
+    "next": "15.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "viem": "^2.21.0",
+    "wagmi": "^2.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5",
+    "eslint": "^8",
+    "eslint-config-next": "15.1.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8",
+    "autoprefixer": "^10"
+  }
+}

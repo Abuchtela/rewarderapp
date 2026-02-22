@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #0A0A0F;
+  --bg2: #111118;
+  --card: #16161F;
+  --card2: #1C1C28;
+  --border: #2A2A3A;
+  --border2: #363650;
+  --green: #00E87A;
+  --green-dim: #00E87A22;
+  --green-glow: #00E87A44;
+  --blue: #4F7CFF;
+  --blue-dim: #4F7CFF18;
+  --orange: #FF8A3D;
+  --orange-dim: #FF8A3D18;
+  --purple: #A855F7;
+  --purple-dim: #A855F718;
+  --text: #F0F0F8;
+  --text2: #9090A8;
+  --text3: #5A5A72;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
