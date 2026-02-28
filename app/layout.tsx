@@ -10,6 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `${NAME} — Get Paid to Build`,
     description: 'Track your Neynar score, Builder Score, and earn ETH for shipping on Base.',
     other: {
+      'talentapp:project_verification': 'f86b68df629f6ac7af584584b2a3f5110982b8231aa9859e937a4b47e11830bbf3686f6d1a68aebdb9db4f86e2ca9e5871a812f287b45c1a32ca32678c790700',
+      'coinbase-verification': 'bc_hi2cipof',
       'fc:frame': JSON.stringify({
         version: 'next',
         imageUrl: `${URL}/hero.png`,
