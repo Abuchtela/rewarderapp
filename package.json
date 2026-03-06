@@ -10,7 +10,7 @@
     "manifest": "npx create-onchain --manifest"
   },
   "dependencies": {
-    "@coinbase/onchainkit": "^0.38.0",
+    "@coinbase/onchainkit": "^1.0.0",
     "@farcaster/frame-sdk": "^0.0.30",
     "next": "15.5.10",
     "react": "^18.3.1",
