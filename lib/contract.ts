@@ -173,9 +173,7 @@ export const PAYCHECK_ABI = [
 
 // ── CONTRACT ADDRESS ────────────────────────────────────────────────────────
 // Paste your Remix-deployed address here after deploying to Base mainnet
-export const PAYCHECK_CONTRACT = (
-  process.env.NEXT_PUBLIC_PAYCHECK_CONTRACT ?? '0xDA4763E5aECcb3E97AdEc3FB14021510c524145A'
-) as `0x${string}`
+export { CONTRACT_ADDRESS as PAYCHECK_CONTRACT } from './settings'
 
 // ── CHAIN ────────────────────────────────────────────────────────────────────
 export const BASE_CHAIN_ID = 8453

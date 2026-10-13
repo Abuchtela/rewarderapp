@@ -1,141 +1,35 @@
-# 💸 Paycheck — Deployment Guide
+# Paycheck / rewarderapp
 
-> Built by abuchtela.base.eth · Get paid to build on Base
+Farcaster mini app inside BasePulse for live builder reputation and ETH tips on Base.
 
----
+## Run
 
-## What You're Deploying
+Requires Node 22+ and npm. Install with `npm ci`, copy `.env.local.example` to `.env.local`, fill the settings, then run `npm run dev`. Production uses `npm run build` followed by `npm start`.
 
-1. **Paycheck.sol** — Smart contract on Base that routes tips and collects your 1.5% fee
-2. **Next.js Mini App** — Farcaster Mini App with live scores, task tracker, and tip flow
+## Configuration
 
----
+- `NEYNAR_API_KEY`: server-side user lookup key. Use your own key; rotate any key previously committed to Git. The API supplies the displayed score, username and identity.
+- Talent: no API key is required or requested. Talent Protocol announced the closure of its commercial API at the end of August 2026. The app links to the current public-good score calculator at `https://talentprotocol.com/score`, which computes from public data in the browser. Paycheck does not invent or copy an unverified score. Source: https://paragraph.com/@talent/talent-protocol-5-years-building-for-builders
+- `NEXT_PUBLIC_FARCASTER_FID` and `NEXT_PUBLIC_PROFILE_ADDRESS`: profile to display outside a Farcaster host. The supplied defaults were checked against the live Neynar profile `abuchtela` on October 13, 2026 UTC. They are lookup identifiers, not proof that a wallet is safe for receiving payments.
+- `NEXT_PUBLIC_PAYCHECK_CONTRACT`: a deployed Paycheck contract on Base, not a personal wallet address. Contract data is checked using live RPC before tipping is enabled.
+- `NEXT_PUBLIC_OWNER_ADDRESS`: optional expected protocol owner. A mismatch disables payments and deployment from other wallets.
+- `BASE_RPC_URL`: server-side Base mainnet RPC. Default: `https://mainnet.base.org`.
+- `NEXT_PUBLIC_ONCHAINKIT_API_KEY`: Coinbase browser/client key if required by the selected wallet services. Never use a server-side CDP signing secret here.
+- `NEXT_PUBLIC_URL`: your actual published HTTPS domain.
+- `FARCASTER_HEADER`, `FARCASTER_PAYLOAD`, `FARCASTER_SIGNATURE`: domain association generated and signed in the official Farcaster mini app developer tools. The legacy association for `basepulse.manus.space` is preserved outside the public directory for reference only and is never served. Its signature did not pass the live Base verification check and that domain returned HTTP 404. A newly signed association from the official developer tools is required for your actual HTTPS domain. Missing or mismatched settings return HTTP 503. Do not import or share recovery phrases to configure the app.
 
-## Step 1: Deploy the Smart Contract (10 minutes)
+## Deploy Paycheck
 
-1. Go to **[remix.ethereum.org](https://remix.ethereum.org)**
-2. Click the "+" icon → create `Paycheck.sol` → paste the contract code from `contracts/Paycheck.sol`
-3. Click **"Solidity Compiler"** tab → set compiler to `0.8.24` → click **Compile**
-4. Click **"Deploy & Run"** tab:
-   - Environment: **"Injected Provider - MetaMask"**
-   - Make sure MetaMask is on **Base** network (chainId 8453)
-   - Constructor args:
-     - `_owner`: your wallet address (where fees go)
-     - `_feeBps`: `150` (= 1.5%)
-5. Click **Deploy** → confirm in MetaMask
-6. **Copy the deployed contract address** → paste into `.env.local` as `NEXT_PUBLIC_PAYCHECK_CONTRACT`
+The Stats tab provides a wallet-reviewed deployment of the compiled `contracts/Paycheck.sol` on Base. It sets the connected wallet as protocol owner and a 150 bps (1.5%) initial fee. Deployment requires Base ETH for gas and a wallet signature. After two confirmations, the actual receipt address is saved in this browser and read back from Base. Set `NEXT_PUBLIC_PAYCHECK_CONTRACT` to that verified address in your hosting environment and rebuild to make it the app-wide default.
 
----
+A tip is simulated before it is submitted. The application displays submitted and confirmed transaction states separately. Fees displayed in the UI come from the contract rather than a fixed claim.
 
-## Step 2: Set Up the Next.js App (5 minutes)
+## Data integrity
 
-```bash
-# Clone or copy this folder, then:
-cd paycheck
-npm install
+No fabricated scores, earnings, user counts, ranks, impact metrics, reward allocations, dollar conversions or completed tasks are displayed. Checklist items are self-reported and stored per profile in the local browser. Unsupported notifications return HTTP 503. This app does not automatically obtain grants, claim builder rewards or guarantee income.
 
-# Copy the env template
-cp .env.local.example .env.local
-```
+## Verification
 
-Fill in `.env.local`:
-- `NEXT_PUBLIC_ONCHAINKIT_API_KEY` → [portal.cdp.coinbase.com](https://portal.cdp.coinbase.com)
-- `NEYNAR_API_KEY` → [neynar.com](https://neynar.com)
-- `TALENT_PROTOCOL_API_KEY` → [app.talentprotocol.com/api](https://app.talentprotocol.com/api)
-- `NEXT_PUBLIC_PAYCHECK_CONTRACT` → address from Step 1
-- `NEXT_PUBLIC_OWNER_ADDRESS` → your wallet address
+`npm run contract:compile` regenerates the deployment bytecode from Solidity 0.8.24. `npm run check` checks TypeScript. `npm run build` builds production. `npm test` starts production and checks real HTTP responses, the correct live Neynar profile, live Base rejection of the old EOA, input validation, and unavailable integration states. The live test requires a configured Neynar key and no contract configuration.
 
----
-
-## Step 3: Deploy to Vercel (5 minutes)
-
-```bash
-npm install -g vercel
-vercel
-```
-
-Or push to GitHub → import at **[vercel.com/new](https://vercel.com/new)**
-
-Copy your Vercel URL (e.g. `https://paycheck.vercel.app`) → paste into `.env.local` as `NEXT_PUBLIC_URL`
-
-Re-deploy after updating env vars.
-
----
-
-## Step 4: Sign the Farcaster Manifest (10 minutes)
-
-This proves you own the mini app. **Critical step.**
-
-```bash
-npm run manifest
-```
-
-This will:
-1. Ask for your Vercel URL
-2. Open the Farcaster Manifest Tool
-3. **Connect your Farcaster CUSTODY wallet** (not your main wallet)
-   - Find it: Warpcast → Settings → Advanced → Farcaster recovery phrase
-   - Import into MetaMask using the recovery phrase
-4. Sign the manifest
-5. Copy the 3 values (`FARCASTER_HEADER`, `FARCASTER_PAYLOAD`, `FARCASTER_SIGNATURE`) into Vercel env vars
-
----
-
-## Step 5: Add Images to `/public`
-
-Add these image files to the `public/` folder:
-
-| File | Size | Description |
-|------|------|-------------|
-| `icon.png` | 200×200px | App icon (shown in mini app stores) |
-| `splash.png` | 200×200px | Splash screen while loading |
-| `hero.png` | 1200×630px | Cast embed preview image |
-| `og.png` | 1200×630px | Open Graph image |
-
-Use Canva or Figma — green (#00E87A) on black (#0A0A0F) with the 💸 logo.
-
----
-
-## Step 6: Test Your Mini App
-
-1. Go to [warpcast.com/~/developers/mini-apps](https://warpcast.com/~/developers/mini-apps)
-2. Paste your Vercel URL
-3. Preview your frame
-4. If it works → share a cast with your URL on Farcaster!
-
----
-
-## Step 7: Boost Your Scores
-
-After deploying, you'll have:
-- ✅ Contract deployed on Base (+30 Builder Score pts)
-- ✅ Mini App live and earning fees (daily ETH drip)
-- ✅ Farcaster-visible builder activity (Neynar score signal)
-
-Now complete the rest of the Boost checklist inside the app!
-
----
-
-## Income Stream Summary
-
-| Stream | Amount | Frequency |
-|--------|--------|-----------|
-| Base Builder Rewards | 1–5 ETH | Monthly (auto) |
-| Paycheck Protocol Fees | 1.5% of all tips | Daily |
-| DEGEN Community Tips | Variable | Daily |
-| Optimism RetroPGF | Thousands in OP | Quarterly |
-| $TALENT Ecosystem | Ongoing rewards | Ongoing |
-
----
-
-## Help & Resources
-
-- MiniKit docs: [docs.base.org/builderkits/minikit](https://docs.base.org/builderkits/minikit/quickstart)
-- Neynar API: [docs.neynar.com](https://docs.neynar.com)
-- Talent Protocol: [app.talentprotocol.com](https://app.talentprotocol.com)
-- RetroPGF: [retrofunding.optimism.io](https://retrofunding.optimism.io)
-- Farcaster Mini Apps: [miniapps.farcaster.xyz](https://miniapps.farcaster.xyz)
-
----
-
-**Build in public. Ship consistently. Your family eats. 💸**
+Tests do not send funds, deploy a paid contract or prove successful wallet signing. Those require an actual wallet transaction and receipt.
