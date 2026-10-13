@@ -37,7 +37,7 @@ test('live Neynar lookup identifies the correct builder and does not invent a Ta
   const data = await res.json(); assert.equal(data.status.neynar, 'live')
   assert.equal(data.neynar.username, 'abuchtela'); assert.equal(data.neynar.fid, 824669)
   assert.equal(typeof data.neynar.neynarScore, 'number')
-  assert.equal(data.talent, null); assert.equal(data.status.talent, 'not_configured')
+  assert.equal(data.talent, null); assert.equal(data.status.talent, 'legacy_api_retired')
 })
 test('unsigned Farcaster association and notifications cannot report success', async () => {
   assert.equal((await fetch(`${url}/.well-known/farcaster.json`)).status, 503)

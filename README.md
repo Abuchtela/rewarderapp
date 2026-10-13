@@ -9,7 +9,7 @@ Requires Node 22+ and npm. Install with `npm ci`, copy `.env.local.example` to `
 ## Configuration
 
 - `NEYNAR_API_KEY`: server-side user lookup key. Use your own key; rotate any key previously committed to Git. The API supplies the displayed score, username and identity.
-- `TALENT_PROTOCOL_API_KEY`: server-side Talent key for the V2 `/score` endpoint. Missing credentials and malformed upstream responses produce an unavailable state, never a fallback score.
+- Talent: no API key is required or requested. Talent Protocol announced the closure of its commercial API at the end of August 2026. The app links to the current public-good score calculator at `https://talentprotocol.com/score`, which computes from public data in the browser. Paycheck does not invent or copy an unverified score. Source: https://paragraph.com/@talent/talent-protocol-5-years-building-for-builders
 - `NEXT_PUBLIC_FARCASTER_FID` and `NEXT_PUBLIC_PROFILE_ADDRESS`: profile to display outside a Farcaster host. The supplied defaults were checked against the live Neynar profile `abuchtela` on October 13, 2026 UTC. They are lookup identifiers, not proof that a wallet is safe for receiving payments.
 - `NEXT_PUBLIC_PAYCHECK_CONTRACT`: a deployed Paycheck contract on Base, not a personal wallet address. Contract data is checked using live RPC before tipping is enabled.
 - `NEXT_PUBLIC_OWNER_ADDRESS`: optional expected protocol owner. A mismatch disables payments and deployment from other wallets.
@@ -30,6 +30,6 @@ No fabricated scores, earnings, user counts, ranks, impact metrics, reward alloc
 
 ## Verification
 
-`npm run contract:compile` regenerates the deployment bytecode from Solidity 0.8.24. `npm run check` checks TypeScript. `npm run build` builds production. `npm test` starts production and checks real HTTP responses, the correct live Neynar profile, live Base rejection of the old EOA, input validation, and unavailable integration states. The live test requires a configured Neynar key and no Talent or contract configuration.
+`npm run contract:compile` regenerates the deployment bytecode from Solidity 0.8.24. `npm run check` checks TypeScript. `npm run build` builds production. `npm test` starts production and checks real HTTP responses, the correct live Neynar profile, live Base rejection of the old EOA, input validation, and unavailable integration states. The live test requires a configured Neynar key and no contract configuration.
 
 Tests do not send funds, deploy a paid contract or prove successful wallet signing. Those require an actual wallet transaction and receipt.

@@ -15,7 +15,7 @@ interface ContractState {
   ready: boolean; status: string; address?: `0x${string}`; owner?: string
   feeBps?: number; totalVolume?: string; totalFees?: string; pendingFees?: string; blockNumber?: string
 }
-const tasks = ['Connect GitHub and your wallet to Talent', 'Review your Farcaster profile and verified wallets', 'Deploy and verify the Paycheck contract', 'Gather transaction links and usage evidence for funding applications']
+const tasks = ['Check the public Builder Score using your GitHub and wallet', 'Review your Farcaster profile and verified wallets', 'Deploy and verify the Paycheck contract', 'Gather transaction links and usage evidence for funding applications']
 const styles = {
   card: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 18, marginBottom: 12 },
   input: { width: '100%', border: '1px solid var(--border2)', borderRadius: 8, padding: 10, margin: '8px 0 14px', background: 'var(--bg2)', color: 'var(--text)' },
@@ -94,7 +94,6 @@ export default function PaycheckApp() {
     finally { setPending(false) }
   }
   const neynar = data?.neynar?.neynarScore
-  const builder = data?.talent?.builderScore
   return <main style={{ maxWidth: 460, margin: '0 auto', padding: '24px 16px 60px' }}>
     <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
       <div><h1 style={{ fontSize: 27 }}>💸 Pay<span style={{ color: 'var(--green)' }}>check</span></h1><p style={{ fontSize: 12, color: 'var(--text2)' }}>Builder reputation and onchain tips</p></div>
@@ -104,13 +103,13 @@ export default function PaycheckApp() {
     {tab === 'scores' && <>
       <section style={styles.card}><h2 style={{ fontSize: 18, marginBottom: 12 }}>{data?.neynar ? `@${data.neynar.username}` : 'Builder profile'}</h2>
         <label htmlFor="fid">Farcaster FID</label><input id="fid" value={fid} onChange={e => setFid(e.target.value)} inputMode="numeric" style={styles.input} />
-        <label htmlFor="profile">Wallet for Builder Score</label><input id="profile" value={profile} onChange={e => setProfile(e.target.value)} style={styles.input} />
+        <label htmlFor="profile">Profile wallet</label><input id="profile" value={profile} onChange={e => setProfile(e.target.value)} style={styles.input} />
         {address && <button style={styles.button} onClick={() => setProfile(address)}>Use connected wallet</button>}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
           <div><p>Neynar Score</p><strong style={{ fontSize: 30, color: 'var(--green)' }}>{loading ? '…' : neynar == null ? 'Unavailable' : neynar.toFixed(2)}</strong><p style={{ fontSize: 12 }}>{data?.status.neynar ?? error ?? 'Not loaded'}</p></div>
-          <div><p>Builder Score</p><strong style={{ fontSize: 30, color: 'var(--blue)' }}>{loading ? '…' : builder ?? 'Unavailable'}</strong><p style={{ fontSize: 12 }}>{data?.status.talent ?? error ?? 'Not loaded'}</p></div>
+          <div><p>Public Builder Score</p><p style={{ fontSize: 12, marginTop: 12, color: 'var(--text2)' }}>Talent's legacy API has closed. Use the current app to compute your score from public data.</p><a href="https://talentprotocol.com/score" target="_blank" rel="noreferrer">Calculate verified inputs ↗</a></div>
         </div>{data && <p style={{ fontSize: 11, color: 'var(--text2)', marginTop: 14 }}>Fetched {new Date(data.fetchedAt).toLocaleString()}</p>}
-      </section><section style={styles.card}><p>Scores do not guarantee funding. Paycheck does not claim or distribute builder rewards.</p><p style={{ marginTop: 12 }}><a href="https://talent.app" target="_blank" rel="noreferrer">Open Talent ↗</a></p><button style={styles.button} onClick={() => addFrame().catch(() => setMessage('Saving requires a supported Farcaster host.'))}>Save mini app</button></section>
+      </section><section style={styles.card}><p>Scores do not guarantee funding. Paycheck does not claim or distribute builder rewards.</p><p style={{ marginTop: 12 }}><a href="https://talentprotocol.com/score" target="_blank" rel="noreferrer">Open public Builder Score ↗</a></p><button style={styles.button} onClick={() => addFrame().catch(() => setMessage('Saving requires a supported Farcaster host.'))}>Save mini app</button></section>
     </>}
     {tab === 'tasks' && <section style={styles.card}><h2 style={{ marginBottom: 8 }}>Your checklist</h2><p style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 16 }}>Self-reported, saved in this browser. No score increases or completion are assumed.</p>{tasks.map(task => <label key={task} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--border)' }}><input type="checkbox" checked={completed.includes(task)} onChange={() => setCompleted(prev => prev.includes(task) ? prev.filter(v => v !== task) : [...prev, task])} />{task}</label>)}</section>}
     {tab === 'tip' && <section style={styles.card}><h2 style={{ marginBottom: 14 }}>Send a tip on Base</h2>
