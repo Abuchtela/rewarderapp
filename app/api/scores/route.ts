@@ -1,97 +1,41 @@
-// app/api/scores/route.ts
-// Returns Neynar user score + Talent Protocol Builder Score for a given FID or address.
-// Called by the frontend to show live scores.
-
 import { NextRequest } from 'next/server'
+import { validAddress } from '@/lib/settings'
 
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY ?? ''
-const TALENT_API_KEY = process.env.TALENT_PROTOCOL_API_KEY ?? ''
-
-// ── Neynar: get user by FID ──────────────────────────────────────────────────
-async function getNeynarScore(fid: string) {
+export const dynamic = 'force-dynamic'
+async function readApi(url: string, key: string | undefined, header: string) {
+  if (!key) return { data: null, status: 'not_configured' }
   try {
-    const res = await fetch(
-      `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
-      {
-        headers: {
-          accept: 'application/json',
-          api_key: NEYNAR_API_KEY,
-        },
-        next: { revalidate: 3600 }, // cache 1 hour — scores update weekly
-      }
-    )
-    if (!res.ok) return null
-
-    const data = await res.json()
-    const user = data?.users?.[0]
-    if (!user) return null
-
-    return {
-      fid: user.fid,
-      username: user.username,
-      displayName: user.display_name,
-      pfpUrl: user.pfp_url,
-      followerCount: user.follower_count,
-      followingCount: user.following_count,
-      neynarScore: user.experimental?.neynar_user_score ?? null,
-      powerBadge: user.power_badge ?? false,
-      verifications: user.verifications ?? [],
-    }
-  } catch {
-    return null
-  }
+    const response = await fetch(url, {
+      headers: { accept: 'application/json', [header]: key },
+      signal: AbortSignal.timeout(12000), cache: 'no-store',
+    })
+    if (!response.ok) return { data: null, status: `upstream_${response.status}` }
+    return { data: await response.json(), status: 'live' }
+  } catch { return { data: null, status: 'unavailable' } }
 }
-
-// ── Talent Protocol: get Builder Score by wallet address ─────────────────────
-async function getBuilderScore(address: string) {
-  try {
-    const res = await fetch(
-      `https://api.talentprotocol.com/api/v2/passports/${address}`,
-      {
-        headers: {
-          'X-API-KEY': TALENT_API_KEY,
-        },
-        next: { revalidate: 3600 },
-      }
-    )
-    if (!res.ok) return null
-
-    const data = await res.json()
-    const passport = data?.passport
-    if (!passport) return null
-
-    return {
-      builderScore: passport.score ?? 0,
-      activityScore: passport.activity_score ?? 0,
-      identityScore: passport.identity_score ?? 0,
-      skillsScore: passport.skills_score ?? 0,
-      humanCheckmark: passport.human_checkmark ?? false,
-      passportId: passport.passport_id,
-      walletAddress: passport.main_wallet,
-    }
-  } catch {
-    return null
-  }
-}
-
-// ── Route handler ─────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const fid = searchParams.get('fid')
-  const address = searchParams.get('address')
-
-  if (!fid && !address) {
-    return Response.json({ error: 'Provide fid or address param' }, { status: 400 })
+  const fid = req.nextUrl.searchParams.get('fid')
+  const address = req.nextUrl.searchParams.get('address')
+  if (!fid && !address) return Response.json({ error: 'Provide fid or address' }, { status: 400 })
+  if ((fid && !/^[1-9]\d{0,14}$/.test(fid)) || (address && !validAddress(address))) {
+    return Response.json({ error: 'Invalid fid or wallet address' }, { status: 400 })
   }
-
-  const [neynarData, talentData] = await Promise.all([
-    fid ? getNeynarScore(fid) : Promise.resolve(null),
-    address ? getBuilderScore(address) : Promise.resolve(null),
+  const [neynar, talent] = await Promise.all([
+    fid ? readApi(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, process.env.NEYNAR_API_KEY, 'api_key') : Promise.resolve({ data: null, status: 'not_requested' }),
+    address ? readApi(`https://api.talentprotocol.com/score?account_source=wallet&account_id=${encodeURIComponent(address)}`, process.env.TALENT_PROTOCOL_API_KEY, 'X-API-KEY') : Promise.resolve({ data: null, status: 'not_requested' }),
   ])
-
+  const user = neynar.data?.users?.[0]
+  const score = talent.data?.score
   return Response.json({
-    neynar: neynarData,
-    talent: talentData,
-    fetchedAt: new Date().toISOString(),
+    neynar: user ? {
+      fid: user.fid, username: user.username, displayName: user.display_name,
+      neynarScore: typeof user.score === 'number' ? user.score : null,
+      walletAddress: user.verified_addresses?.primary?.eth_address ?? null,
+    } : null,
+    talent: score && typeof score.points === 'number' ? { builderScore: score.points } : null,
+    status: {
+      neynar: neynar.status === 'live' && !user ? 'not_found' : neynar.status,
+      talent: talent.status === 'live' && typeof score?.points !== 'number' ? 'invalid_response' : talent.status,
+    }, fetchedAt: new Date().toISOString(),
   })
 }
